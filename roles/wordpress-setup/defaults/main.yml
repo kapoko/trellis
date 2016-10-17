@@ -1,1 +1,5 @@
 site_uses_local_db: "{{ site_env.db_host == 'localhost' }}"
+nginx_server_before: ''
+nginx_location_before: include includes.d/{{ item.key }}/*.conf;
+nginx_location: ''
+nginx_location_php: ''
