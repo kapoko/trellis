@@ -83,12 +83,66 @@ Vagrant.configure('2') do |config|
       trellis_config.wordpress_sites.each_pair do |name, site|
         config.vm.synced_folder local_site_path(site), nfs_path(name), type: 'nfs'
         config.bindfs.bind_folder nfs_path(name), remote_site_path(name, site), u: 'vagrant', g: 'www-data', o: 'nonempty'
+
+         # Create database folders
+        databaseDir = local_site_path(site) + "/../database"
+        if !File.directory?(databaseDir)
+          Dir.mkdir databaseDir 
+          # FileUtils.touch(databaseDir + "/database.sql")
+        end
+
+        # Sync folders
+        config.vm.synced_folder databaseDir, remote_site_path(name, site) + '/../database'
       end
 
       config.vm.synced_folder ANSIBLE_PATH, '/ansible-nfs', type: 'nfs'
       config.bindfs.bind_folder '/ansible-nfs', ANSIBLE_PATH_ON_VM, o: 'nonempty', p: '0644,a+D'
       config.bindfs.bind_folder bin_path, bin_path, perms: '0755'
     end
+  end
+
+    # Vagrant Triggers
+  #
+  # If the vagrant-triggers plugin is installed, we can run various scripts on Vagrant
+  # state changes like `vagrant up`, `vagrant halt`, `vagrant suspend`, and `vagrant destroy`
+  #
+  # These scripts are run on the host machine, so we use `vagrant ssh` to tunnel back
+  # into the VM and execute things.
+  #
+  if Vagrant.has_plugin? 'vagrant-triggers'
+    trellis_config.wordpress_sites.each_pair do |name, site|
+      #
+      # Get database credentials
+      #
+      # site['env'].merge!(vault_sites[name]['env'])
+      # db_name  = site['env']['db_name']
+      # db_user  = site['env']['db_user']
+      # db_pass  = site['env']['db_password']
+      #
+      # Importing database
+      #
+      config.trigger.after [:up, :resume, :reload], :force => true do
+        info "Trying database import"
+        run_remote "su vagrant && cd " + remote_site_path(name, site) + " && wp db export " + "../database/" + name + ".sql --allow-root"
+        #database_file = "../database/backups/#{db_name}.sql"
+        #if File.exists?(database_file)
+        #  info "Importing database #{db_name}"
+        #  run_remote "cd"mysql -u #{db_user} -p#{db_pass} #{db_name} < /srv/database/backups/#{db_name}.sql"
+        #else
+        #  fail_with_message "#{database_file} was not found."
+        #end
+      end
+      #
+      # Exporting database
+      #
+      config.trigger.before [:halt, :suspend, :destroy], :force => true do
+        # info "Dumping database #{db_name}"
+        # run_remote "mysqldump -u #{db_user} -p#{db_pass} #{db_name} > /srv/database/backups/#{db_name}.sql"
+      end
+    end
+  else
+    puts 'vagrant-triggers missing, please install the plugin:'
+    puts 'vagrant plugin install vagrant-triggers'
   end
 
   vconfig.fetch('vagrant_synced_folders', []).each do |folder|
