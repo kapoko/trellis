@@ -101,43 +101,31 @@ Vagrant.configure('2') do |config|
     end
   end
 
-    # Vagrant Triggers
+  # Vagrant Triggers
   #
   # If the vagrant-triggers plugin is installed, we can run various scripts on Vagrant
   # state changes like `vagrant up`, `vagrant halt`, `vagrant suspend`, and `vagrant destroy`
   #
-  # These scripts are run on the host machine, so we use `vagrant ssh` to tunnel back
-  # into the VM and execute things.
-  #
   if Vagrant.has_plugin? 'vagrant-triggers'
     trellis_config.wordpress_sites.each_pair do |name, site|
-      #
-      # Get database credentials
-      #
-      # site['env'].merge!(vault_sites[name]['env'])
-      # db_name  = site['env']['db_name']
-      # db_user  = site['env']['db_user']
-      # db_pass  = site['env']['db_password']
+      
+      wordpress_path = remote_site_path(name, site) + '/web/wp'
+      database_file = remote_site_path(name, site) + "/../database/" + name + ".sql"
+
       #
       # Importing database
       #
       config.trigger.after [:up, :resume, :reload], :force => true do
-        info "Trying database import"
-        run_remote "su vagrant && cd " + remote_site_path(name, site) + " && wp db export " + "../database/" + name + ".sql --allow-root"
-        #database_file = "../database/backups/#{db_name}.sql"
-        #if File.exists?(database_file)
-        #  info "Importing database #{db_name}"
-        #  run_remote "cd"mysql -u #{db_user} -p#{db_pass} #{db_name} < /srv/database/backups/#{db_name}.sql"
-        #else
-        #  fail_with_message "#{database_file} was not found."
-        #end
+        info "Importing database"
+        run_remote "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path
       end
+
       #
       # Exporting database
       #
       config.trigger.before [:halt, :suspend, :destroy], :force => true do
-        # info "Dumping database #{db_name}"
-        # run_remote "mysqldump -u #{db_user} -p#{db_pass} #{db_name} > /srv/database/backups/#{db_name}.sql"
+        info "Exporting database"
+        run_remote "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path
       end
     end
   else
