@@ -21,4 +21,21 @@ wordpress_sites:
       db_name: utg2018_development
       db_user: example
       db_prefix: utgwp_
-
+  jankoster.nl:
+    site_hosts:
+      - canonical: jankoster.dev
+        redirects:
+          - www.jankoster.dev
+    local_path: ../../web/jankoster/site # path targeting local Bedrock site directory (relative to Ansible root)
+    admin_email: admin@jankoster.dev
+    multisite:
+      enabled: false
+    ssl:
+      enabled: false
+      provider: self-signed
+    cache:
+      enabled: false
+    env:
+      db_name: jankoster_development
+      db_user: example
+      db_prefix: jkwp_
