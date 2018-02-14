@@ -14,7 +14,7 @@ Trellis will configure a server with the following and more:
 
 * Ubuntu 16.04 Xenial LTS
 * Nginx (with optional FastCGI micro-caching)
-* PHP 7.1
+* PHP 7.2
 * MariaDB (a drop-in MySQL replacement)
 * SSL support (scores an A+ on the [Qualys SSL Labs Test](https://www.ssllabs.com/ssltest/))
 * Let's Encrypt integration for free SSL certificates
@@ -36,7 +36,7 @@ Full documentation is available at [https://roots.io/trellis/docs/](https://root
 Make sure all dependencies have been installed before moving on:
 
 * [Virtualbox](https://www.virtualbox.org/wiki/Downloads) >= 4.3.10
-* [Vagrant](https://www.vagrantup.com/downloads.html) >= 1.8.5
+* [Vagrant](https://www.vagrantup.com/downloads.html) >= 2.0.1
 
 ## Installation
 
