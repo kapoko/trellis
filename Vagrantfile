@@ -106,31 +106,26 @@ Vagrant.configure('2') do |config|
   # If the vagrant-triggers plugin is installed, we can run various scripts on Vagrant
   # state changes like `vagrant up`, `vagrant halt`, `vagrant suspend`, and `vagrant destroy`
   #
-  if Vagrant.has_plugin? 'vagrant-triggers'
-    trellis_config.wordpress_sites.each_pair do |name, site|
-      
-      wordpress_path = remote_site_path(name, site) + '/web/wp'
-      database_file = remote_site_path(name, site) + "/../database/" + name + ".sql"
+  trellis_config.wordpress_sites.each_pair do |name, site|
+    
+    wordpress_path = remote_site_path(name, site) + '/web/wp'
+    database_file = remote_site_path(name, site) + "/../database/" + name + ".sql"
 
-      #
-      # Importing database
-      #
-      config.trigger.after [:up, :resume, :reload], :force => true do
-        info "Importing database..."
-        run_remote "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path
-      end
-
-      #
-      # Exporting database
-      #
-      config.trigger.before [:halt, :suspend, :destroy, :reload], :force => true do
-        info "Exporting database..."
-        run_remote "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path
-      end
+    #
+    # Importing database
+    #
+    config.trigger.after [:up, :resume, :reload] do |trigger| 
+      trigger.info = "Importing database..."
+      trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path}
     end
-  else
-    puts 'vagrant-triggers missing, please install the plugin:'
-    puts 'vagrant plugin install vagrant-triggers'
+
+    #
+    # Exporting database
+    #
+    config.trigger.before [:halt, :suspend, :destroy, :reload] do |trigger|
+      trigger.info = "Exporting database..."
+      trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path}
+    end
   end
 
   vconfig.fetch('vagrant_synced_folders', []).each do |folder|

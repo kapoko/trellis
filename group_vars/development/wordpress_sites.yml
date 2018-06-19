@@ -5,11 +5,11 @@
 wordpress_sites:
   upthegame.nl:
     site_hosts:
-      - canonical: upthegame.dev
+      - canonical: upthegame.test
         redirects:
-          - www.upthegame.dev
+          - www.upthegame.test
     local_path: ../../web/utg2018/site # path targeting local Bedrock site directory (relative to Ansible root)
-    admin_email: admin@upthegame.dev
+    admin_email: admin@upthegame.test
     multisite:
       enabled: false
     ssl:
@@ -23,11 +23,11 @@ wordpress_sites:
       db_prefix: utgwp_
   jankoster.nl:
     site_hosts:
-      - canonical: jankoster.dev
+      - canonical: jankoster.test
         redirects:
-          - www.jankoster.dev
+          - www.jankoster.test
     local_path: ../../web/jankoster/site # path targeting local Bedrock site directory (relative to Ansible root)
-    admin_email: admin@jankoster.dev
+    admin_email: admin@jankoster.test
     multisite:
       enabled: false
     ssl:
@@ -39,3 +39,21 @@ wordpress_sites:
       db_name: jankoster_development
       db_user: example
       db_prefix: jkwp_
+  prisonescape.nl:
+    site_hosts:
+      - canonical: prisonescape.test
+        redirects:
+          - www.prisonescape.test
+    local_path: ../../web/prisonescape.nl/site # path targeting local Bedrock site directory (relative to Ansible root)
+    admin_email: admin@prisonescape.test
+    multisite:
+      enabled: false
+    ssl:
+      enabled: false
+      provider: self-signed
+    cache:
+      enabled: false
+    env:
+      db_name: prisonescape_development
+      db_user: example
+      db_prefix: pewp_
