@@ -134,7 +134,6 @@ Vagrant.configure('2') do |config|
     #
     config.trigger.before [:halt, :suspend, :destroy, :reload] do |trigger|
       trigger.info = "Exporting database..."
-      trigger.info = wordpress_path
       trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path}
     end
   end
