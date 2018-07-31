@@ -121,20 +121,22 @@ Vagrant.configure('2') do |config|
     wordpress_path = remote_site_path(name, site) + '/web/wp'
     database_file = remote_site_path(name, site) + "/../database/" + name + ".sql"
 
-    #
-    # Importing database
-    #
-    config.trigger.after [:up, :resume, :reload] do |trigger| 
-      trigger.info = "Importing database..."
-      trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path}
-    end
+    if (ENV['TRIGGERS'] != 'false') 
+      #
+      # Importing database
+      #
+      config.trigger.after [:up, :resume, :reload] do |trigger| 
+        trigger.info = "Importing database..."
+        trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path}
+      end
 
-    #
-    # Exporting database
-    #
-    config.trigger.before [:halt, :suspend, :destroy, :reload] do |trigger|
-      trigger.info = "Exporting database..."
-      trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path}
+      #
+      # Exporting database
+      #
+      config.trigger.before [:halt, :suspend, :destroy, :reload] do |trigger|
+        trigger.info = "Exporting database..."
+        trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db export " + database_file + " --path=" + wordpress_path}
+      end
     end
   end
 
