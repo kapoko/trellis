@@ -3,10 +3,12 @@
 
 ANSIBLE_PATH = __dir__ # absolute path to Ansible directory on host machine
 ANSIBLE_PATH_ON_VM = '/home/vagrant/trellis'.freeze # absolute path to Ansible directory on virtual machine
+LOCAL_PATH = '/Users/kasper/web'
 
 require File.join(ANSIBLE_PATH, 'lib', 'trellis', 'vagrant')
 require File.join(ANSIBLE_PATH, 'lib', 'trellis', 'config')
 require 'yaml'
+require 'pathname'
 
 vconfig = YAML.load_file("#{ANSIBLE_PATH}/vagrant.default.yml")
 
@@ -119,15 +121,20 @@ Vagrant.configure('2') do |config|
   trellis_config.wordpress_sites.each_pair do |name, site|
     
     wordpress_path = remote_site_path(name, site) + '/web/wp'
-    database_file = remote_site_path(name, site) + "/../database/" + name + ".sql"
+    database_file = Pathname.new(remote_site_path(name, site)).parent.to_s + "/database/" + name + ".sql"
+    local_database_file = LOCAL_PATH + name + "/database/" + name + ".sql"
 
     if (ENV['TRIGGERS'] != 'false') 
       #
       # Importing database
       #
       config.trigger.after [:up, :resume, :reload] do |trigger| 
-        trigger.info = "Importing database..."
-        trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path}
+        trigger.info = "Importing database... [" + local_database_file + "]"
+        if Pathname.new(local_database_file).file? 
+          trigger.run_remote = {inline: "sudo -u vagrant -i -- wp db import " + database_file + " --path=" + wordpress_path}
+        else
+          trigger.info = "Skipping import, database file [" + local_database_file + "] doesn't exist"
+        end
       end
 
       #
